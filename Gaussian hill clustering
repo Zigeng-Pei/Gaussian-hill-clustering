@@ -1,0 +1,143 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
+
+# Define Gaussian function
+def gaussian(x1, x2, amp, mean1, mean2, stddev):
+    return amp * np.exp(-(((x1 - mean1) ** 2 + (x2 - mean2) ** 2) / (2 * stddev ** 2)))
+
+# Gaussian overlay function
+def multi_gaussian(x1, x2, *params):
+    y = np.zeros_like(x1)
+    for i in range(0, len(params), 4):  # Each group of parameters includes amplitude, mean1, mean2, and standard deviation
+        amp = params[i]
+        mean1 = params[i + 1]
+        mean2 = params[i + 2]
+        stddev = params[i + 3]
+        y += gaussian(x1, x2, amp, mean1, mean2, stddev)
+    return y
+
+# Input parameters for five Gaussian curves: each group has four parameters (amplitude, mean1, mean2, and standard deviation).
+# Gaussian function parameters are obtained from deconvolution fitting in the MATLAB cftool module
+params = [
+    a1, b1, b1, c1,  # First group
+    a2, b2, b2, c2,  # Second group
+    a3, b3, b3, c3,  # Third group
+    a4, b4, b4, c4,  # Fourth group
+    a5, b5, b5, c5   # Fifth group
+]
+
+# Generate data points
+x1_data = np.linspace(0, 80, 1000)  # x1 axis
+x2_data = np.linspace(0, 80, 1000)  # x2 axis
+x1, x2 = np.meshgrid(x1_data, x2_data)
+
+# Calculate y_data (sum) using the provided Gaussian curve parameters
+y_data = multi_gaussian(x1, x2, *params)
+
+# Data import
+data = pd.read_excel('file')
+data_E_x1 = data['E-ITcurve']
+data_E_x2 = data['E-ITcurve']
+data_H = data['H-ITcurve']
+
+# Initialize result list
+result_list = []
+
+# Calculate probability density for each coordinate point and assign group randomly
+for x1_point, x2_point in zip(data_E_x1, data_E_x2):
+    densities = []
+    
+    # Calculate probability density for each group of Gaussian functions
+    for i in range(0, len(params), 4):
+        amp = params[i]
+        mean1 = params[i + 1]
+        mean2 = params[i + 2]
+        stddev = params[i + 3]
+        
+        density = gaussian(x1_point, x2_point, amp, mean1, mean2, stddev)
+        densities.append(density)
+    
+    # Check if probability density is valid
+    total_density = sum(densities)
+    if total_density == 0 or np.isnan(total_density):  # Skip points with zero total density or containing NaN
+        continue
+
+    # Assign group randomly using probability density as weights
+    group_numbers = np.arange(1, 6)  # Group numbers 1 to 5 represent the five types of ores
+    assigned_group = np.random.choice(group_numbers, p=np.array(densities) / total_density)
+    
+    # Add result to list
+    result_list.append([x1_point, x2_point, assigned_group, max(densities)])
+
+# Convert to DataFrame
+result_df = pd.DataFrame(result_list, columns=['X1', 'X2', 'Assigned Group', 'Max Density'])
+
+# Plot contour map for probability density of each Gaussian curve group
+plt.figure(figsize=(10, 8))
+
+# Plot 3D Gaussian overlay hill
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# Plot Gaussian overlay hill
+ax.plot_surface(x1, x2, y_data, cmap='viridis')
+
+# Set axis labels
+ax.set_xlabel('X1 axis')
+ax.set_ylabel('X2 axis')
+ax.set_zlabel('Y axis')
+
+plt.title('Gaussian overlay on X1-X2-Y axes')
+
+# Save 3D image to desktop
+plt.savefig('Gaussian.png', dpi=300)
+plt.show()
+
+# Draw contour for each group of Gaussian functions
+for i in range(0, len(params), 4):
+    amp = params[i]
+    mean1 = params[i + 1]
+    mean2 = params[i + 2]
+    stddev = params[i + 3]
+    
+    # Calculate Gaussian distribution for current group
+    z = gaussian(x1, x2, amp, mean1, mean2, stddev)
+    
+    # Draw contour
+    plt.contour(x1, x2, z, levels=10, cmap='coolwarm', alpha=0.6)  # Different colors for each group contour
+
+# Save to Excel file
+result_df.to_excel('Gaussian_Assignment_Results.xlsx', index=False)
+print("Assignment results saved to Excel file on the desktop.")
+
+# Plot overall contour map
+plt.contourf(x1, x2, y_data, cmap='viridis', levels=50)  # Overall probability contour
+plt.colorbar(label='Probability density')
+
+# Set axis labels
+plt.xlabel('X1 axis')
+plt.ylabel('X2 axis')
+plt.title('Probability contour overlay of each Gaussian curve group')
+
+# Save image to desktop
+plt.savefig('Gaussian_Group_Contours.png', dpi=300)
+plt.show()
+
+# Plot overall contour map and mark coordinate points
+contour = plt.contourf(x1, x2, y_data, cmap='viridis', levels=50)  # Overall probability contour
+plt.colorbar(contour, label='Probability density')
+
+# Mark coordinate points of data_E_x1 and data_E_x2 on contour
+plt.scatter(data_E_x1, data_E_x2, color='red', s=10, label='Coordinate points')  # Mark points in red
+plt.legend()
+
+# Set axis labels and title
+plt.xlabel('X1 axis')
+plt.ylabel('X2 axis')
+plt.title('Gaussian curve probability contour overlay and coordinate point distribution')
+
+# Save image to desktop
+plt.savefig('Gaussian_Group_Contours_with_Coordinates.png', dpi=300)
+plt.show()
