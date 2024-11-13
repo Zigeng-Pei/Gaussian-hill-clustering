@@ -21,11 +21,11 @@ def multi_gaussian(x1, x2, *params):
 # Input parameters for five Gaussian curves: each group has four parameters (amplitude, mean1, mean2, and standard deviation).
 # Gaussian function parameters are obtained from deconvolution fitting in the MATLAB cftool module
 params = [
-    a1, b1, b1, c1,  # First group
-    a2, b2, b2, c2,  # Second group
-    a3, b3, b3, c3,  # Third group
-    a4, b4, b4, c4,  # Fourth group
-    a5, b5, b5, c5   # Fifth group
+    3, 21.2, 21.2, 3,  # First group
+    4, 48.98, 48.98, 33.32,  # Second group
+    6.167, 97.1, 97.1, 10,  # Third group
+    2.65, 117.8, 117.8, 5,  # Fourth group
+    2.011, 139.5, 139.5, 5   # Fifth group
 ]
 
 # Generate data points
