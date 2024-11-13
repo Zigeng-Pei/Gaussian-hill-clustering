@@ -37,7 +37,7 @@ x1, x2 = np.meshgrid(x1_data, x2_data)
 y_data = multi_gaussian(x1, x2, *params)
 
 # Data import
-data = pd.read_excel('file')
+data = pd.read_excel('test_data.xlsx')
 data_E_x1 = data['E-ITcurve']
 data_E_x2 = data['E-ITcurve']
 data_H = data['H-ITcurve']
