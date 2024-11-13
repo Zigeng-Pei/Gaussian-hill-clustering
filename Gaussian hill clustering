@@ -29,8 +29,8 @@ params = [
 ]
 
 # Generate data points
-x1_data = np.linspace(0, 80, 1000)  # x1 axis
-x2_data = np.linspace(0, 80, 1000)  # x2 axis
+x1_data = np.linspace(0, 160, 1000)  # x1 axis
+x2_data = np.linspace(0, 160, 1000)  # x2 axis
 x1, x2 = np.meshgrid(x1_data, x2_data)
 
 # Calculate y_data (sum) using the provided Gaussian curve parameters
@@ -38,9 +38,9 @@ y_data = multi_gaussian(x1, x2, *params)
 
 # Data import
 data = pd.read_excel('test_data.xlsx')
-data_E_x1 = data['E-ITcurve']
-data_E_x2 = data['E-ITcurve']
-data_H = data['H-ITcurve']
+data_E_x1 = data['E-IT']
+data_E_x2 = data['E-IT']
+data_H = data['H-IT']
 
 # Initialize result list
 result_list = []
